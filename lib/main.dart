@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
-List<String> drawinglist = ['drawing1', 'drawing2'];
+List<String> drawinglist = ["Drawing 1"];
+String s;
+TextEditingController controller = new TextEditingController();
 void main() => runApp(MaterialApp(
       routes: {
         '/': (context) => Home(),
@@ -35,33 +37,63 @@ class _HomeState extends State<Home> {
         title: Text("My drawings"),
         centerTitle: true,
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: drawinglist
-            .map((drawing) => Dismissible(
-                  key: Key(drawing),
-                  onDismissed: (direction) {
-                    setState(() {
-                      drawinglist.remove(drawing);
-                    });
-                  },
-                  child: RaisedButton.icon(
-                      onPressed: () {
-                        Navigator.pushNamed(context, '/${drawing}');
+      body: ListView(children: <Widget>[
+        Column(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: drawinglist
+              .map((drawing) => Padding(
+                    padding: const EdgeInsets.all(15.0),
+                    child: Dismissible(
+                      key: Key(drawing),
+                      onDismissed: (direction) {
+                        setState(() {
+                          drawinglist.remove(drawing);
+                        });
                       },
-                      label: Text(drawing),
-                      icon: Icon(Icons.account_box)),
-                ))
-            .toList(),
-      ),
+                      child: RaisedButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              Navigator.pushNamed(context, '/${drawing}');
+                            });
+                          },
+                          label: Text(
+                            drawing,
+                            style: TextStyle(
+                              fontSize: 30,
+                              letterSpacing: 3,
+                              color: Colors.pinkAccent,
+                            ),
+                          ),
+                          icon: Icon(Icons.animation)),
+                    ),
+                  ))
+              .toList(),
+        ),
+        TextField(
+          onChanged: (String str) {
+            setState(() {
+              s = str;
+            });
+          },
+        ),
+      ]),
       floatingActionButton: RaisedButton.icon(
           icon: Icon(Icons.add),
           label: Text("New"),
           onPressed: () {
             setState(() {
-              drawinglist.add('drawing');
+              drawinglist.add(s);
+              controller.text = "";
             });
+
+            runApp(MaterialApp(
+              routes: {
+                '/': (context) => Home(),
+                for (int i = 0; i < drawinglist.length; i++)
+                  '/${drawinglist[i]}': (context) => HomePage(),
+              },
+            ));
           }),
     );
   }
