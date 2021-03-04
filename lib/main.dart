@@ -1,24 +1,11 @@
 import 'package:flutter/material.dart';
-// import 'package:flutterapp/pages/choose_location.dart';
-// import 'package:flutterapp/pages/home.dart';
 
-// import 'package:flutterapp/pages/loading.dart';
-
-// void main() => runApp(MaterialApp(
-//       initialRoute: '/home',
-//       routes: {
-//         '/': (context) => Loading(),
-//         '/home': (context) => Home(),
-//         '/location': (context) => ChooseLoctaion(),
-//       },
-//     ));
-
+List<String> drawinglist = ['drawing1', 'drawing2'];
 void main() => runApp(MaterialApp(
       routes: {
         '/': (context) => Home(),
-        '/Drawing1': (context) => HomePage(),
-        '/Drawing2': (context) => HomePage(),
-        '/Drawing3': (context) => HomePage(),
+        for (int i = 0; i < drawinglist.length; i++)
+          '/${drawinglist[i]}': (context) => HomePage(),
       },
     ));
 
@@ -40,7 +27,6 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  List<String> drawings = ["Drawing 1", "Drawing 2", "Drawing 3"];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,19 +38,31 @@ class _HomeState extends State<Home> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: drawings
-            .map((drawing) => RaisedButton.icon(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/Drawing1');
-                },
-                label: Text(drawing),
-                icon: Icon(Icons.account_box)))
+        children: drawinglist
+            .map((drawing) => Dismissible(
+                  key: Key(drawing),
+                  onDismissed: (direction) {
+                    setState(() {
+                      drawinglist.remove(drawing);
+                    });
+                  },
+                  child: RaisedButton.icon(
+                      onPressed: () {
+                        Navigator.pushNamed(context, '/${drawing}');
+                      },
+                      label: Text(drawing),
+                      icon: Icon(Icons.account_box)),
+                ))
             .toList(),
       ),
       floatingActionButton: RaisedButton.icon(
-        icon: Icon(Icons.add),
-        label: Text("New"),
-      ),
+          icon: Icon(Icons.add),
+          label: Text("New"),
+          onPressed: () {
+            setState(() {
+              drawinglist.add('drawing');
+            });
+          }),
     );
   }
 }
