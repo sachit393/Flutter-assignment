@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:holding_gesture/holding_gesture.dart';
+import 'package:flutter_search_bar/flutter_search_bar.dart';
 
 List<String> drawinglist = ["Drawing 1"];
-String s = 'sad';
+List<String> filterDrawings = [];
+String s;
 TextEditingController controller = new TextEditingController();
 void main() => runApp(MaterialApp(
       routes: {
@@ -30,52 +32,161 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  bool isSearching = false;
   @override
+  SearchBar searchBar;
+  void _filterDrawings(value) {
+    filterDrawings = drawinglist.where((drawing) => value == drawing).toList();
+    runApp(MaterialApp(
+      routes: {
+        '/': (context) => Home(),
+        for (int i = 0; i < drawinglist.length; i++)
+          '/${drawinglist[i]}': (context) => HomePage(),
+      },
+    ));
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.deepPurple,
-        title: Text("My drawings"),
+        title: !isSearching
+            ? Text("My drawings")
+            : TextField(
+                onChanged: (value) {
+                  _filterDrawings(value);
+                },
+                style: TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                    hintText: 'Search drawing',
+                    icon: Icon(Icons.search),
+                    hintStyle: TextStyle(color: Colors.white24))),
+        actions: <Widget>[
+          Padding(
+            padding: EdgeInsets.all(20),
+            child: IconButton(
+              icon: Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  this.isSearching = !this.isSearching;
+                });
+              },
+            ),
+          )
+        ],
         centerTitle: true,
       ),
       body: ListView(children: <Widget>[
         Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: drawinglist
-              .map((drawing) => Padding(
-                    padding: const EdgeInsets.all(15.0),
-                    child: Dismissible(
-                      key: Key(drawing),
-                      onDismissed: (direction) {
-                        setState(() {
-                          drawinglist.remove(drawing);
-                        });
-                      },
-                      child: RaisedButton.icon(
-                          onLongPress: () {
+          children: !isSearching
+              ? drawinglist
+                  .map((drawing) => Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Dismissible(
+                          key: UniqueKey(),
+                          onDismissed: (direction) {
                             setState(() {
                               drawinglist.remove(drawing);
-                              drawinglist.add(s);
                             });
                           },
-                          onPressed: () {
+                          child: RaisedButton.icon(
+                              onLongPress: () {
+                                setState(() {
+                                  drawinglist[drawinglist.indexOf(drawing)] = s;
+                                  //drawing.replaceAll('${drawing}', 'sac');
+                                  // drawinglist.remove(drawing);
+                                  // drawinglist.add(s);
+                                  controller.text = "";
+                                  runApp(MaterialApp(
+                                    routes: {
+                                      '/': (context) => Home(),
+                                      for (int i = 0;
+                                          i < drawinglist.length;
+                                          i++)
+                                        '/${drawinglist[i]}': (context) =>
+                                            HomePage(),
+                                    },
+                                  ));
+                                });
+                              },
+                              onPressed: () {
+                                setState(() {
+                                  Navigator.pushNamed(context, '/${drawing}');
+                                  controller.text = "";
+                                  runApp(MaterialApp(
+                                    routes: {
+                                      '/': (context) => Home(),
+                                      for (int i = 0;
+                                          i < drawinglist.length;
+                                          i++)
+                                        '/${drawinglist[i]}': (context) =>
+                                            HomePage(),
+                                    },
+                                  ));
+                                });
+                              },
+                              label: Text(
+                                drawing,
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  letterSpacing: 3,
+                                  color: Colors.pinkAccent,
+                                ),
+                              ),
+                              icon: Icon(Icons.animation)),
+                        ),
+                      ))
+                  .toList()
+              : filterDrawings
+                  .map((drawing) => Padding(
+                        padding: const EdgeInsets.all(15.0),
+                        child: Dismissible(
+                          key: UniqueKey(),
+                          onDismissed: (direction) {
                             setState(() {
-                              Navigator.pushNamed(context, '/${drawing}');
+                              filterDrawings.remove(drawing);
                             });
                           },
-                          label: Text(
-                            drawing,
-                            style: TextStyle(
-                              fontSize: 30,
-                              letterSpacing: 3,
-                              color: Colors.pinkAccent,
-                            ),
-                          ),
-                          icon: Icon(Icons.animation)),
-                    ),
-                  ))
-              .toList(),
+                          child: RaisedButton.icon(
+                              onLongPress: () {
+                                setState(() {
+                                  filterDrawings[
+                                      filterDrawings.indexOf(drawing)] = s;
+                                  //drawing.replaceAll('${drawing}', 'sac');
+                                  // drawinglist.remove(drawing);
+                                  // drawinglist.add(s);
+                                  controller.text = "";
+                                  runApp(MaterialApp(
+                                    routes: {
+                                      '/': (context) => Home(),
+                                      for (int i = 0;
+                                          i < filterDrawings.length;
+                                          i++)
+                                        '/${filterDrawings[i]}': (context) =>
+                                            HomePage(),
+                                    },
+                                  ));
+                                });
+                              },
+                              onPressed: () {
+                                setState(() {
+                                  Navigator.pushNamed(context, '/${drawing}');
+                                });
+                              },
+                              label: Text(
+                                drawing,
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  letterSpacing: 3,
+                                  color: Colors.pinkAccent,
+                                ),
+                              ),
+                              icon: Icon(Icons.animation)),
+                        ),
+                      ))
+                  .toList(),
         ),
         TextField(
           onChanged: (String str) {
@@ -89,18 +200,18 @@ class _HomeState extends State<Home> {
           icon: Icon(Icons.add),
           label: Text("New"),
           onPressed: () {
+            controller.text = "";
             setState(() {
               drawinglist.add(s);
               controller.text = "";
+              runApp(MaterialApp(
+                routes: {
+                  '/': (context) => Home(),
+                  for (int i = 0; i < drawinglist.length; i++)
+                    '/${drawinglist[i]}': (context) => HomePage(),
+                },
+              ));
             });
-
-            runApp(MaterialApp(
-              routes: {
-                '/': (context) => Home(),
-                for (int i = 0; i < drawinglist.length; i++)
-                  '/${drawinglist[i]}': (context) => HomePage(),
-              },
-            ));
           }),
     );
   }
@@ -167,4 +278,71 @@ class Signature extends CustomPainter {
 
   @override
   bool shouldRepaint(Signature oldDelegate) => oldDelegate.points != points;
+}
+
+class Search extends SearchDelegate {
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    return <Widget>[
+      IconButton(
+        icon: Icon(Icons.close),
+        onPressed: () {
+          query = "";
+        },
+      ),
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    return IconButton(
+      icon: Icon(Icons.arrow_back),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+  }
+
+  String selectedResult = "";
+
+  @override
+  Widget buildResults(BuildContext context) {
+    return Container(
+      child: Center(
+        child: Text(selectedResult),
+      ),
+    );
+  }
+
+  final List<String> listExample;
+  Search(this.listExample);
+
+  List<String> recentList = ["Text 4", "Text 3"];
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    List<String> suggestionList = [];
+    query.isEmpty
+        ? suggestionList = recentList //In the true case
+        : suggestionList.addAll(listExample.where(
+            // In the false case
+            (element) => element.contains(query),
+          ));
+
+    return ListView.builder(
+      itemCount: suggestionList.length,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(
+            suggestionList[index],
+          ),
+          leading: query.isEmpty ? Icon(Icons.access_time) : SizedBox(),
+          onTap: () {
+            selectedResult = suggestionList[index];
+            showResults(context);
+          },
+        );
+      },
+    );
+  }
 }
