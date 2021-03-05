@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:holding_gesture/holding_gesture.dart';
 
 List<String> drawinglist = ["Drawing 1"];
-String s;
+String s = 'sad';
 TextEditingController controller = new TextEditingController();
 void main() => runApp(MaterialApp(
       routes: {
@@ -52,6 +53,12 @@ class _HomeState extends State<Home> {
                         });
                       },
                       child: RaisedButton.icon(
+                          onLongPress: () {
+                            setState(() {
+                              drawinglist.remove(drawing);
+                              drawinglist.add(s);
+                            });
+                          },
                           onPressed: () {
                             setState(() {
                               Navigator.pushNamed(context, '/${drawing}');
