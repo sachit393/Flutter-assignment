@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:holding_gesture/holding_gesture.dart';
 import 'package:flutter_search_bar/flutter_search_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 List<String> drawinglist = ["Drawing 1"];
+String pointsave = '';
 List<String> filterDrawings = [];
 String s;
 TextEditingController controller = new TextEditingController();
@@ -88,6 +90,7 @@ class _HomeState extends State<Home> {
                           key: UniqueKey(),
                           onDismissed: (direction) {
                             setState(() {
+                              print('blah');
                               drawinglist.remove(drawing);
                             });
                           },
@@ -189,6 +192,7 @@ class _HomeState extends State<Home> {
                   .toList(),
         ),
         TextField(
+          controller: controller,
           onChanged: (String str) {
             setState(() {
               s = str;
@@ -232,21 +236,19 @@ class _HomePageState extends State<HomePage> {
         title: Text('My drawing'),
         backgroundColor: Colors.black,
       ),
-      body: new Container(
-        child: new GestureDetector(
-          onPanUpdate: (DragUpdateDetails details) {
-            setState(() {
-              RenderBox object = context.findRenderObject();
-              Offset _localPosition =
-                  object.globalToLocal(details.globalPosition);
-              _points = new List.from(_points)..add(_localPosition);
-            });
-          },
-          onPanEnd: (DragEndDetails details) => _points.add(null),
-          child: new CustomPaint(
-            painter: new Signature(points: _points),
-            size: Size.infinite,
-          ),
+      body: new GestureDetector(
+        onPanUpdate: (DragUpdateDetails details) {
+          setState(() {
+            RenderBox object = context.findRenderObject();
+            Offset _localPosition =
+                object.globalToLocal(details.globalPosition);
+            _points = new List.from(_points)..add(_localPosition);
+          });
+        },
+        onPanEnd: (DragEndDetails details) => _points.add(null),
+        child: new CustomPaint(
+          painter: new Signature(points: _points),
+          size: Size.infinite,
         ),
       ),
       floatingActionButton: new FloatingActionButton(
@@ -259,11 +261,36 @@ class _HomePageState extends State<HomePage> {
 
 class Signature extends CustomPainter {
   List<Offset> points;
+  String pointsave = '';
+  void drawoldpoints(Canvas canvas, Paint paint) {
+    for (int i = 0; i < pointsave.length - 19; i = i + 20) {
+      // print(pointsave.substring(i, i + 20));
+      points[i] = Offset(double.parse(pointsave.substring(i + 7, i + 11)),
+          double.parse(pointsave.substring(i + 14, i + 18)));
+    }
+
+    for (int i = 0; i < points.length - 1; i++) {
+      if (points[i] != null && points[i + 1] != null) {
+        canvas.drawLine(points[i], points[i + 1], paint);
+      }
+    }
+  }
 
   Signature({this.points});
+  void storepoints(List<Offset> points) async {
+    for (int i = 0; i < points.length; i++) {
+      pointsave += points[i].toString();
+    }
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    await prefs.setString('pointers', pointsave);
+  }
+
+  void getpoints() async {}
 
   @override
-  void paint(Canvas canvas, Size size) {
+  void paint(Canvas canvas, Size size) async {
     Paint paint = new Paint()
       ..color = Colors.blue
       ..strokeCap = StrokeCap.round
@@ -274,6 +301,11 @@ class Signature extends CustomPainter {
         canvas.drawLine(points[i], points[i + 1], paint);
       }
     }
+
+    storepoints(points);
+    final prefs = await SharedPreferences.getInstance();
+    final pointsave = prefs.getString('pointers');
+    // print(pointsave);
   }
 
   @override
